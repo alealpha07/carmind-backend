@@ -36,11 +36,15 @@ app.use(session({
 app.use(cookieParser(COOKIE_SECRET));
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(express.json());
+
 // #endregion
 
 // #region routes
 import auth from "./routes/auth";
 app.use("/auth", auth);
+import upload from "./routes/upload";
+app.use("/upload", upload);
 
 // #endregion
 
