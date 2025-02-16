@@ -23,6 +23,7 @@ router.post("/register", async (request: Request, response: Response): Promise<a
             return response.status(422).send("Passwords are not matching");
         }
         const hashedPassword = await bcrypt.hash(password, PASSWORD_SALT);
+        // TODO handle missing data
         await prisma.user.create({
             data: {
                 email: username,

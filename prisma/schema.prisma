@@ -20,7 +20,6 @@ model User {
   name String
   surname String
   birthDate DateTime
-  address String?
   vehicles Vehicle[]
 }
 
