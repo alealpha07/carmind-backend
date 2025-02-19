@@ -12,8 +12,11 @@ router.post("/register", async (request: Request, response: Response): Promise<a
         const username = request.body.username;
         const password = request.body.password;
         const confirmPassword = request.body.confirmPassword;
-        if (!username || !password || !confirmPassword) {
-            return response.status(422).send("Username,password,confirmedPassword are required");
+        const name = request.body.name;
+        const surname = request.body.surname;
+        const birthDate = request.body.birthDate;
+        if (!username || !password || !confirmPassword || !name || !surname || !birthDate) {
+            return response.status(422).send("Username, password, confirmedPassword, name, surname, birthdate are required");
         }
         const user = await prisma.user.findUnique({ where: { email: username } });
         if (!!user) {
@@ -23,14 +26,13 @@ router.post("/register", async (request: Request, response: Response): Promise<a
             return response.status(422).send("Passwords are not matching");
         }
         const hashedPassword = await bcrypt.hash(password, PASSWORD_SALT);
-        // TODO handle missing data
         await prisma.user.create({
             data: {
                 email: username,
                 password: hashedPassword,
-                name: "admin",
-                surname: "admin",
-                birthDate: new Date(1970, 1, 1),
+                name: name,
+                surname: surname,
+                birthDate: new Date(birthDate),
             }
         })
         response.send("User created succesfly");
