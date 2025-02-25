@@ -1,4 +1,4 @@
-import express, {Request, Response} from "express";
+import express, { Request, Response } from "express";
 import prisma from "../connection";
 import bcrypt from "bcryptjs";
 import passport from "passport";
@@ -41,7 +41,8 @@ router.post("/register", async (request: Request, response: Response): Promise<a
         console.error(error);
     }
 })
-router.post("/login", async (request:Request, response:Response, next) => {
+
+router.post("/login", async (request: Request, response: Response, next) => {
     passport.authenticate("local", (error: Error, user: User, info: any) => {
         if (error) throw error;
         if (!user) return response.status(401).send(info.message);
@@ -65,13 +66,51 @@ router.get("/user", async (request: Request, response: Response): Promise<any> =
     }
 })
 
-router.post("/logout", (request:Request, response:Response, next) => {
+router.post("/logout", (request: Request, response: Response, next) => {
     request.logOut((err) => {
         if (err) {
             return next(err);
         }
         response.send("Logged out successfully");
     });
+})
+
+router.post("/reset", async (request: Request, response: Response): Promise<any> => {
+    try {
+        if (!request.isAuthenticated()) {
+            return response.status(401).send("User not authenticated");
+        }
+
+        const password = request.body.password;
+        const newPassword = request.body.newPassword;
+        const confirmNewPassword = request.body.confirmNewPassword;
+
+        if (!password || !newPassword || !confirmNewPassword) {
+            return response.status(422).send("password, new password and confirm new password are required");
+        }
+        const user = (request.user as User);
+        const passwordsAreMatching = await bcrypt.compare(password, user.password);
+        if (!passwordsAreMatching) {
+            return response.status(422).send("Password is incorrect");
+        }
+        if (newPassword != confirmNewPassword) {
+            return response.status(422).send("New passwords are not matching");
+        }
+        const hashedPassword = await bcrypt.hash(newPassword, PASSWORD_SALT);
+
+        await prisma.user.update({
+            where: {
+                id: user.id,
+            },
+            data: {           
+                password: hashedPassword,
+            }
+        })
+        response.send("Password changed correctly");
+    } catch (error) {
+        response.status(500).send("Server error");
+        console.error(error);
+    }
 })
 
 export default router;
