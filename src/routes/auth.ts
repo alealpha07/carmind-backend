@@ -3,7 +3,6 @@ import prisma from "../connection";
 import bcrypt from "bcryptjs";
 import passport from "passport";
 import { User } from "@prisma/client";
-import { RequiredKeys } from "@prisma/client/runtime/library";
 const PASSWORD_SALT = 10;
 const router = express.Router();
 
