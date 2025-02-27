@@ -6,7 +6,7 @@ import { DoneCallback } from "passport";
 import { User } from "@prisma/client";
 
 function initialize(passport: any) {
-    const authenticateUser = async (username:string, password:string, done:any) => {
+    const authenticateUser = async (username:string, password:string, done: Function) => {
         try {
             const user = await prisma.user.findUnique({ where: { email: username } });
             if (!user) {
