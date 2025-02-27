@@ -45,6 +45,8 @@ import auth from "./routes/auth";
 app.use("/auth", auth);
 import upload from "./routes/upload";
 app.use("/upload", upload);
+import vehicle from "./routes/vehicle";
+app.use("/vehicle", vehicle);
 
 // #endregion
 
