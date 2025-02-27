@@ -112,4 +112,33 @@ router.post("/reset", async (request: Request, response: Response): Promise<any>
     }
 })
 
+router.post("/editprofile", async (request: Request, response: Response): Promise<any> => {
+    try {
+        if (!request.isAuthenticated()) {
+            return response.status(401).send("User not authenticated");
+        }
+        const name = request.body.name;
+        const surname = request.body.surname;
+        const birthDate = request.body.birthDate;
+        if (!name || !surname || !birthDate) {
+            return response.status(422).send("Name, surname, birthdate are required");
+        }
+        const user = (request.user as User);
+        await prisma.user.update({
+            where: {
+                id: user.id,
+            },
+            data: {
+                name: name,
+                surname: surname,
+                birthDate: birthDate
+            }
+        })
+        response.send("Profile updated correctly");
+    } catch (error) {
+        response.status(500).send("Server error");
+        console.error(error);
+    }
+})
+
 export default router;
