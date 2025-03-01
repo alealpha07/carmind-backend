@@ -22,10 +22,26 @@ router.post("/", async (request: Request, response: Response): Promise<any> => {
         }
         
         const user = (request.user as User);
-        prisma.vehicle.create({
+        await prisma.vehicle.create({
             data: {...sanitizedParams, ...{idUser: user.id}}
         })
         response.send("Vehicle created successfully");
+    } catch (error) {
+        response.status(500).send("Server error");
+        console.error(error);
+    }
+})
+
+router.get("/", async (request: Request, response: Response): Promise<any> => {
+    try {
+        if (!request.isAuthenticated()) {
+            return response.status(401).send("User not authenticated");
+        }        
+        const user = (request.user as User);
+        const vehicles = await prisma.vehicle.findMany({
+            where: {idUser: user.id}
+        })
+        response.json(vehicles);
     } catch (error) {
         response.status(500).send("Server error");
         console.error(error);
