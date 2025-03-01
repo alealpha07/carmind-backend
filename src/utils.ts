@@ -1,12 +1,12 @@
-export function sanitizeParams(requiredParams: Array<string>, requestBody: any) {
+export function sanitizeParams(requiredParams: Array<string>, requestParams: any) {
     const sanitizedParams:any = {};
     const missingParams:Array<string> = [];
     
     requiredParams.forEach((param: string) => {
-        if (requestBody[param] === undefined || requestBody[param] === "" || requestBody[param] === null) {
+        if (requestParams[param] === undefined || requestParams[param] === "" || requestParams[param] === null) {
             missingParams.push(param);
         } else {
-            sanitizedParams[param] = requestBody[param];
+            sanitizedParams[param] = requestParams[param];
         }
     });
     

@@ -77,4 +77,29 @@ router.put("/", async (request: Request, response: Response): Promise<any> => {
     }
 })
 
+router.delete("/", async (request: Request, response: Response): Promise<any> => {
+    try {
+        if (!request.isAuthenticated()) {
+            return response.status(401).send("User not authenticated");
+        }
+        const requiredParams = ["id"];
+        
+        const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.query);
+        
+        if (missingParams.length > 0) {
+            return response.status(422).send("Missing required params: " + missingParams.join(", "));
+        }
+        
+        const {id,...sanitizeParamsNoId} = sanitizedParams;
+        await prisma.vehicle.update({
+            where: {id},
+            data: sanitizeParamsNoId
+        })
+        response.send("Vehicle updated successfully");
+    } catch (error) {
+        response.status(500).send("Server error");
+        console.error(error);
+    }
+})
+
 export default router;
