@@ -89,13 +89,11 @@ router.delete("/", async (request: Request, response: Response): Promise<any> =>
         if (missingParams.length > 0) {
             return response.status(422).send("Missing required params: " + missingParams.join(", "));
         }
-        
-        const {id,...sanitizeParamsNoId} = sanitizedParams;
-        await prisma.vehicle.update({
-            where: {id},
-            data: sanitizeParamsNoId
+
+        await prisma.vehicle.delete({
+            where: {id:Number(sanitizedParams.id)}
         })
-        response.send("Vehicle updated successfully");
+        response.send("Vehicle deleted successfully");
     } catch (error) {
         response.status(500).send("Server error");
         console.error(error);
