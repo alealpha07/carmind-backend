@@ -33,7 +33,7 @@ router.post("/", upload.single("file"), async (request: Request, response: Respo
     }
 
     let vehicle = await prisma.vehicle.findFirst({ where: { id: Number(sanitizedParams.id), idUser:  (request.user as User).id} });
-    if ( !!vehicle && vehicle[sanitizedParams.type as keyof Vehicle] != path.extname(request.file.originalname)){
+    if ( !!vehicle && vehicle[sanitizedParams.type as keyof Vehicle] != null && vehicle[sanitizedParams.type as keyof Vehicle] != path.extname(request.file.originalname)){
       let fileName = sanitizedParams.id + "-" + sanitizedParams.type + vehicle[sanitizedParams.type as keyof Vehicle];
       const filePath = path.join(__dirname, "..", "..", "uploads", fileName);
       fs.unlinkSync(filePath);
