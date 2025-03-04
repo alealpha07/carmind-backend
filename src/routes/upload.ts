@@ -4,6 +4,7 @@ import multer from "multer"
 import path from "path"
 import fs from "fs";
 import { User, Vehicle } from "@prisma/client";
+import { sanitizeParams } from "../utils";
 const router = express.Router();
 
 const storage = multer.diskStorage({
@@ -15,34 +16,41 @@ const upload = multer({ storage });
 router.post("/", upload.single("file"), async (request: Request, response: Response): Promise<any> => {
   try {
     if (!request.isAuthenticated()) {
-      return response.status(401).send("User not authenticated");
+      return response.status(401).send(response.__("unauthorizedError"));
     }
     if (!request.file) {
-      return response.status(422).json("Error, file is missing!");
-    }
-    if (!request.query.id || !request.query.type) {
-      return response.status(422).json("Error, vehicle or type are missing!");
+      return response.status(422).json(response.__("fileMissingError"));
     }
 
-    let vehicle = await prisma.vehicle.findFirst({ where: { id: Number(request.query.id), idUser:  (request.user as User).id} });
-    if ( !!vehicle && vehicle[request.query.type as keyof Vehicle] != path.extname(request.file.originalname)){
-      let fileName = request.query.id + "-" + request.query.type + vehicle[request.query.type as keyof Vehicle];
+    const requiredParams = [
+        "id", "type"
+    ];
+    
+    const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.query);
+    
+    if (missingParams.length > 0) {
+        return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
+    }
+
+    let vehicle = await prisma.vehicle.findFirst({ where: { id: Number(sanitizedParams.id), idUser:  (request.user as User).id} });
+    if ( !!vehicle && vehicle[sanitizedParams.type as keyof Vehicle] != path.extname(request.file.originalname)){
+      let fileName = sanitizedParams.id + "-" + sanitizedParams.type + vehicle[sanitizedParams.type as keyof Vehicle];
       const filePath = path.join(__dirname, "..", "..", "uploads", fileName);
       fs.unlinkSync(filePath);
     }
 
     await prisma.vehicle.update({
       where: { 
-        id: Number(request.query.id),
+        id: Number(sanitizedParams.id),
         idUser: (request.user as User).id,
       },
       data: { 
-        [request.query.type as keyof Vehicle]: path.extname(request.file.originalname)
+        [sanitizedParams.type as keyof Vehicle]: path.extname(request.file.originalname)
       },
     });
-    response.json("File uploaded successfully!");
+    response.json(response.__("fileUploadedSuccessfully"));
   } catch (error) {
-    response.status(500).send("Server error");
+    response.status(500).send(response.__("serverError"));
     console.error(error);
   }
 })
@@ -50,27 +58,31 @@ router.post("/", upload.single("file"), async (request: Request, response: Respo
 router.get("/", async (request: Request, response: Response): Promise<any> => {
   try {
     if (!request.isAuthenticated()) {
-      return response.status(401).send("User not authenticated");
+      return response.status(401).send(response.__("unauthorizedError"));
     }
-    if (!request.query.id || !request.query.type) {
-      return response.status(422).json("Error, vehicle or type are missing!");
+    const requiredParams = [
+        "id", "type"
+    ];
+    const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.query);
+    if (missingParams.length > 0) {
+        return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
     }
-    let vehicle = await prisma.vehicle.findFirst({ where: { id: Number(request.query.id), idUser:  (request.user as User).id} });
+    let vehicle = await prisma.vehicle.findFirst({ where: { id: Number(sanitizedParams.id), idUser:  (request.user as User).id} });
     if (!vehicle){
-      return response.status(404).json("Error, vehicle not found!");
+      return response.status(404).json(response.__("vehicleNotFoundError"));
     }
-    if (!vehicle[request.query.type as keyof Vehicle]) {
-      return response.status(422).json("Requested file is missing!");
+    if (!vehicle[sanitizedParams.type as keyof Vehicle]) {
+      return response.status(422).json(response.__("fileNotFoundError"));
     }
 
-    let fileName = request.query.id + "-" + request.query.type + vehicle[request.query.type as keyof Vehicle];
+    let fileName = sanitizedParams.id + "-" + sanitizedParams.type + vehicle[sanitizedParams.type as keyof Vehicle];
     const filePath = path.join(__dirname, "..", "..", "uploads", fileName);
     if (!fs.existsSync(filePath)) {
-      return response.status(404).json("File not found on server");
+      return response.status(404).json(response.__("fileNotFoundError"));
     }
     response.sendFile(filePath);
   } catch (error) {
-    response.status(500).send("Server error");
+    response.status(500).send(response.__("serverError"));
     console.error(error);
   }
 })

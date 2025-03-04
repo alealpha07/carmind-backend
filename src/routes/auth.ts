@@ -3,40 +3,41 @@ import prisma from "../connection";
 import bcrypt from "bcryptjs";
 import passport from "passport";
 import { User } from "@prisma/client";
+import { sanitizeParams } from "../utils";
 const PASSWORD_SALT = 10;
 const router = express.Router();
 
 router.post("/register", async (request: Request, response: Response): Promise<any> => {
     try {
-        const username = request.body.username;
-        const password = request.body.password;
-        const confirmPassword = request.body.confirmPassword;
-        const name = request.body.name;
-        const surname = request.body.surname;
-        const birthDate = request.body.birthDate;
-        if (!username || !password || !confirmPassword || !name || !surname || !birthDate) {
-            return response.status(422).send("Username, password, confirmedPassword, name, surname, birthdate are required");
+        const requiredParams = [
+            "username", "password", "confirmPassword", "name", "surname", "birthDate"
+        ];
+        
+        const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.body);
+        
+        if (missingParams.length > 0) {
+            return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
         }
-        const user = await prisma.user.findUnique({ where: { email: username } });
+        const user = await prisma.user.findUnique({ where: { email: sanitizedParams.username } });
         if (!!user) {
-            return response.status(422).send("User with that email already exists");
+            return response.status(422).send(response.__("emailAlreadyTakenError"));
         }
-        if (password != confirmPassword) {
-            return response.status(422).send("Passwords are not matching");
+        if (sanitizedParams.password != sanitizedParams.confirmPassword) {
+            return response.status(422).send(response.__("passwordsNotMatchingError"));
         }
-        const hashedPassword = await bcrypt.hash(password, PASSWORD_SALT);
+        const hashedPassword = await bcrypt.hash(sanitizedParams.password, PASSWORD_SALT);
         await prisma.user.create({
             data: {
-                email: username,
+                email: sanitizedParams.username,
                 password: hashedPassword,
-                name: name,
-                surname: surname,
-                birthDate: new Date(birthDate),
+                name: sanitizedParams.name,
+                surname: sanitizedParams.surname,
+                birthDate: new Date(sanitizedParams.birthDate),
             }
         })
-        response.send("User created succesfly");
+        response.send(response.__("userCreatedSuccessfully"));
     } catch (error) {
-        response.status(500).send("Server error");
+        response.status(500).send(response.__("serverError"));
         console.error(error);
     }
 })
@@ -44,9 +45,9 @@ router.post("/register", async (request: Request, response: Response): Promise<a
 router.post("/login", async (request: Request, response: Response, next) => {
     passport.authenticate("local", (error: Error, user: User, info: any) => {
         if (error) throw error;
-        if (!user) return response.status(401).send(info.message);
+        if (!user) return response.status(401).send(response.__(info.message));
         request.logIn(user, (error) => {
-            response.send("User successfully logged in");
+            response.send(response.__("loggedInSuccessfully"));
         })
     })(request, response, next)
 })
@@ -54,13 +55,13 @@ router.post("/login", async (request: Request, response: Response, next) => {
 router.get("/user", async (request: Request, response: Response): Promise<any> => {
     try {
         if (!request.isAuthenticated()) {
-            return response.status(401).send("User not authenticated");
+            return response.status(401).send(response.__("unauthorizedError"));
         }
 
         const user = await prisma.user.findUnique({ where: { id: (request.user as User).id } });
         response.send(user);
     } catch (error) {
-        response.status(500).send("Server error");
+        response.status(500).send(response.__("serverError"));
         console.error(error);
     }
 })
@@ -70,32 +71,34 @@ router.post("/logout", (request: Request, response: Response, next) => {
         if (err) {
             return next(err);
         }
-        response.send("Logged out successfully");
+        response.send(response.__("loggedOutSuccessfully"));
     });
 })
 
 router.post("/reset", async (request: Request, response: Response): Promise<any> => {
     try {
         if (!request.isAuthenticated()) {
-            return response.status(401).send("User not authenticated");
+            return response.status(401).send(response.__("unauthorizedError"));
         }
 
-        const password = request.body.password;
-        const newPassword = request.body.newPassword;
-        const confirmNewPassword = request.body.confirmNewPassword;
-
-        if (!password || !newPassword || !confirmNewPassword) {
-            return response.status(422).send("password, new password and confirm new password are required");
+        const requiredParams = [
+            "password", "newPassword","confirmNewPassword"
+        ];
+        
+        const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.body);
+        
+        if (missingParams.length > 0) {
+            return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
         }
         const user = (request.user as User);
-        const passwordsAreMatching = await bcrypt.compare(password, user.password);
+        const passwordsAreMatching = await bcrypt.compare(sanitizedParams.password, user.password);
         if (!passwordsAreMatching) {
-            return response.status(422).send("Password is incorrect");
+            return response.status(422).send(response.__("passwordIncorrectError"));
         }
-        if (newPassword != confirmNewPassword) {
-            return response.status(422).send("New passwords are not matching");
+        if (sanitizedParams.newPassword != sanitizedParams.confirmNewPassword) {
+            return response.status(422).send(response.__("passwordsNotMatchingError"));
         }
-        const hashedPassword = await bcrypt.hash(newPassword, PASSWORD_SALT);
+        const hashedPassword = await bcrypt.hash(sanitizedParams.newPassword, PASSWORD_SALT);
 
         await prisma.user.update({
             where: {
@@ -105,9 +108,9 @@ router.post("/reset", async (request: Request, response: Response): Promise<any>
                 password: hashedPassword,
             }
         })
-        response.send("Password changed correctly");
+        response.send(response.__("passwordChangedSuccessfully"));
     } catch (error) {
-        response.status(500).send("Server error");
+        response.status(500).send(response.__("serverError"));
         console.error(error);
     }
 })
@@ -115,28 +118,33 @@ router.post("/reset", async (request: Request, response: Response): Promise<any>
 router.post("/editprofile", async (request: Request, response: Response): Promise<any> => {
     try {
         if (!request.isAuthenticated()) {
-            return response.status(401).send("User not authenticated");
+            return response.status(401).send(response.__("unauthorizedError"));
         }
-        const name = request.body.name;
-        const surname = request.body.surname;
-        const birthDate = request.body.birthDate;
-        if (!name || !surname || !birthDate) {
-            return response.status(422).send("Name, surname, birthdate are required");
+
+        const requiredParams = [
+            "name", "surname", "birthDate"
+        ];
+        
+        const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.body);
+        
+        if (missingParams.length > 0) {
+            return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
         }
+
         const user = (request.user as User);
         await prisma.user.update({
             where: {
                 id: user.id,
             },
             data: {
-                name: name,
-                surname: surname,
-                birthDate: birthDate
+                name: sanitizedParams.name,
+                surname: sanitizedParams.surname,
+                birthDate: sanitizedParams.birthDate
             }
         })
-        response.send("Profile updated correctly");
+        response.send(response.__("profileUpdatedSuccessfully"));
     } catch (error) {
-        response.status(500).send("Server error");
+        response.status(500).send(response.__("serverError"));
         console.error(error);
     }
 })

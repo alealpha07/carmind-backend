@@ -10,14 +10,14 @@ function initialize(passport: any) {
         try {
             const user = await prisma.user.findUnique({ where: { email: username } });
             if (!user) {
-                return done(null, false, { message: "Wrong Credentials" });
+                return done(null, false, { message: "wrongCredentialsError" });
             }
             const passwordsAreMatching = await bcrypt.compare(password, user.password);
             if (passwordsAreMatching) {
                 return done(null, user);
             }
             else {
-                return done(null, false, { message: "Wrong Credentials" });
+                return done(null, false, { message: "wrongCredentialsError" });
             }
         } catch (error) {
             return done(error);

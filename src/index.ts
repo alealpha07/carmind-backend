@@ -10,6 +10,8 @@ import prisma from "./connection";
 import inizializePassport from "./passportConfig";
 import dotenv from "dotenv";
 import { User } from "@prisma/client";
+import i18n from "i18n";
+import path from "path";
 
 dotenv.config();
 // #endregion 
@@ -25,6 +27,16 @@ if (!COOKIE_SECRET) throw ("COOKIE_SECRET is required");
 // #endregion
 
 // #region middlewhere
+i18n.configure({
+    locales: ["en", "it"],
+    directory: path.resolve(__dirname, "locales"),
+    defaultLocale: "en",
+    queryParameter: "lang",
+    autoReload: true,
+    syncFiles: true,
+    objectNotation: true,
+});
+app.use(i18n.init);
 app.use(cors({ origin: [FRONT_END_URL], credentials: true }));
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));

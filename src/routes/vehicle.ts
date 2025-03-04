@@ -7,7 +7,7 @@ const router = express.Router();
 router.post("/", async (request: Request, response: Response): Promise<any> => {
     try {
         if (!request.isAuthenticated()) {
-            return response.status(401).send("User not authenticated");
+            return response.status(401).send(response.__("unauthorizedError"));
         }
         const requiredParams = [
             "type", "brand", "model", "registrationYear", "plateNumber",
@@ -18,16 +18,16 @@ router.post("/", async (request: Request, response: Response): Promise<any> => {
         const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.body);
         
         if (missingParams.length > 0) {
-            return response.status(422).send("Missing required params: " + missingParams.join(", "));
+            return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
         }
         
         const user = (request.user as User);
         await prisma.vehicle.create({
             data: {...sanitizedParams, ...{idUser: user.id}}
         })
-        response.send("Vehicle created successfully");
+        response.send(response.__("vehicleCreatedSuccessfully"));
     } catch (error) {
-        response.status(500).send("Server error");
+        response.status(500).send(response.__("serverError"));
         console.error(error);
     }
 })
@@ -35,7 +35,7 @@ router.post("/", async (request: Request, response: Response): Promise<any> => {
 router.get("/", async (request: Request, response: Response): Promise<any> => {
     try {
         if (!request.isAuthenticated()) {
-            return response.status(401).send("User not authenticated");
+            return response.status(401).send(response.__("unauthorizedError"));
         }        
         const user = (request.user as User);
         const vehicles = await prisma.vehicle.findMany({
@@ -43,7 +43,7 @@ router.get("/", async (request: Request, response: Response): Promise<any> => {
         })
         response.json(vehicles);
     } catch (error) {
-        response.status(500).send("Server error");
+        response.status(500).send(response.__("serverError"));
         console.error(error);
     }
 })
@@ -51,7 +51,7 @@ router.get("/", async (request: Request, response: Response): Promise<any> => {
 router.put("/", async (request: Request, response: Response): Promise<any> => {
     try {
         if (!request.isAuthenticated()) {
-            return response.status(401).send("User not authenticated");
+            return response.status(401).send(response.__("unauthorizedError"));
         }
         const requiredParams = [
             "type", "brand", "model", "registrationYear", "plateNumber",
@@ -62,7 +62,7 @@ router.put("/", async (request: Request, response: Response): Promise<any> => {
         const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.body);
         
         if (missingParams.length > 0) {
-            return response.status(422).send("Missing required params: " + missingParams.join(", "));
+            return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
         }
         
         const {id,...sanitizeParamsNoId} = sanitizedParams;
@@ -70,9 +70,9 @@ router.put("/", async (request: Request, response: Response): Promise<any> => {
             where: {id},
             data: sanitizeParamsNoId
         })
-        response.send("Vehicle updated successfully");
+        response.send(response.__("vehicleUpdatedSuccessfully"));
     } catch (error) {
-        response.status(500).send("Server error");
+        response.status(500).send(response.__("serverError"));
         console.error(error);
     }
 })
@@ -80,22 +80,22 @@ router.put("/", async (request: Request, response: Response): Promise<any> => {
 router.delete("/", async (request: Request, response: Response): Promise<any> => {
     try {
         if (!request.isAuthenticated()) {
-            return response.status(401).send("User not authenticated");
+            return response.status(401).send(response.__("unauthorizedError"));
         }
         const requiredParams = ["id"];
         
         const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.query);
         
         if (missingParams.length > 0) {
-            return response.status(422).send("Missing required params: " + missingParams.join(", "));
+            return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
         }
 
         await prisma.vehicle.delete({
             where: {id:Number(sanitizedParams.id)}
         })
-        response.send("Vehicle deleted successfully");
+        response.send(response.__("vehicleDeletedSuccessfully"));
     } catch (error) {
-        response.status(500).send("Server error");
+        response.status(500).send(response.__("serverError"));
         console.error(error);
     }
 })
