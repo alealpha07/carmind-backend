@@ -33,7 +33,7 @@ router.post("/", upload.single("file"), async (request: Request, response: Respo
     }
 
     let vehicle = await prisma.vehicle.findFirst({ where: { id: Number(sanitizedParams.id), idUser:  (request.user as User).id} });
-    if ( !!vehicle && vehicle[sanitizedParams.type as keyof Vehicle] != null && vehicle[sanitizedParams.type as keyof Vehicle] != path.extname(request.file.originalname)){
+    if ( !!vehicle && !!vehicle[sanitizedParams.type as keyof Vehicle] && vehicle[sanitizedParams.type as keyof Vehicle] != path.extname(request.file.originalname)){
       let fileName = sanitizedParams.id + "-" + sanitizedParams.type + vehicle[sanitizedParams.type as keyof Vehicle];
       const filePath = path.join(__dirname, "..", "..", "uploads", fileName);
       fs.unlinkSync(filePath);
@@ -81,6 +81,41 @@ router.get("/", async (request: Request, response: Response): Promise<any> => {
       return response.status(404).json(response.__("fileNotFoundError"));
     }
     response.sendFile(filePath);
+  } catch (error) {
+    response.status(500).send(response.__("serverError"));
+    console.error(error);
+  }
+})
+
+router.get("/all", async (request: Request, response: Response): Promise<any> => {
+  try {
+    if (!request.isAuthenticated()) {
+      return response.status(401).send(response.__("unauthorizedError"));
+    }
+    const requiredParams = ["id"];
+    const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.query);
+    if (missingParams.length > 0) {
+        return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
+    }
+    let vehicle = await prisma.vehicle.findFirst({ where: { id: Number(sanitizedParams.id), idUser:  (request.user as User).id} });
+    if (!vehicle){
+      return response.status(404).json(response.__("vehicleNotFoundError"));
+    }
+    let files: any = {
+      registrationCardFileExtension: false,
+      maintenanceFileExtension: false,
+      insuranceFileExtension: false
+    };
+
+    Object.keys(files).forEach((type) => {
+      let fileName = sanitizedParams.id + "-" + type + vehicle[type as keyof Vehicle];
+      
+      const filePath = path.join(__dirname, "..", "..", "uploads", fileName);
+      if (fs.existsSync(filePath)) {
+        files[type] = true;
+      }
+    })
+    response.json(files);
   } catch (error) {
     response.status(500).send(response.__("serverError"));
     console.error(error);
