@@ -7,6 +7,13 @@ import { User, Vehicle } from "@prisma/client";
 import { sanitizeParams } from "../utils";
 const router = express.Router();
 
+type AvailableFiles =  {
+  registrationCardFileExtension: boolean,
+  maintenanceFileExtension: boolean,
+  insuranceFileExtension: boolean,
+  vehicleImageFileExtension: boolean
+};
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => cb(null, req.query.id + "-" + req.query.type + path.extname(file.originalname)),
@@ -87,40 +94,7 @@ router.get("/", async (request: Request, response: Response): Promise<any> => {
   }
 })
 
-router.get("/image", async (request: Request, response: Response): Promise<any> => {
-  try {
-    if (!request.isAuthenticated()) {
-      return response.status(401).send(response.__("unauthorizedError"));
-    }
-    const requiredParams = ["id"];
-    const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.query);
-    if (missingParams.length > 0) {
-      return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
-    }
-    let vehicle = await prisma.vehicle.findFirst({ where: { id: Number(sanitizedParams.id), idUser: (request.user as User).id } });
-    if (!vehicle) {
-      return response.status(404).json(response.__("vehicleNotFoundError"));
-    }
-    let files: any = {
-      vehicleImageFileExtension: false
-    };
-
-    Object.keys(files).forEach((type) => {
-      let fileName = sanitizedParams.id + "-" + type + vehicle[type as keyof Vehicle];
-
-      const filePath = path.join(__dirname, "..", "..", "uploads", fileName);
-      if (fs.existsSync(filePath)) {
-        files[type] = true;
-      }
-    })
-    response.json(files);
-  } catch (error) {
-    response.status(500).send(response.__("serverError"));
-    console.error(error);
-  }
-})
-
-  router.get("/all", async (request: Request, response: Response): Promise<any> => {
+  router.get("/available", async (request: Request, response: Response): Promise<any> => {
     try {
       if (!request.isAuthenticated()) {
         return response.status(401).send(response.__("unauthorizedError"));
@@ -134,21 +108,21 @@ router.get("/image", async (request: Request, response: Response): Promise<any> 
       if (!vehicle) {
         return response.status(404).json(response.__("vehicleNotFoundError"));
       }
-      let files: any = {
+      let availableFiles: AvailableFiles = {
         registrationCardFileExtension: false,
         maintenanceFileExtension: false,
-        insuranceFileExtension: false
+        insuranceFileExtension: false,
+        vehicleImageFileExtension: false
       };
   
-      Object.keys(files).forEach((type) => {
+      Object.keys(availableFiles).forEach((type) => {
         let fileName = sanitizedParams.id + "-" + type + vehicle[type as keyof Vehicle];
-  
         const filePath = path.join(__dirname, "..", "..", "uploads", fileName);
         if (fs.existsSync(filePath)) {
-          files[type] = true;
+          availableFiles[type as keyof AvailableFiles] = true;
         }
       })
-      response.json(files);
+      response.json(availableFiles);
     } catch (error) {
       response.status(500).send(response.__("serverError"));
       console.error(error);
