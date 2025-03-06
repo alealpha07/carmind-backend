@@ -16,6 +16,7 @@
     "vehicleCreatedSuccessfully": "Vehicle created successfully!",
     "vehicleUpdatedSuccessfully": "Vehicle updated successfully!",
     "vehicleDeletedSuccessfully": "Vehicle deleted successfully!",
+    "fileDeletedSuccessfully": "File deleted successfully!",
     "vehicleNotFoundError": "Vehicle not found!",
     "fileNotFoundError": "File not found!",
 	"username": "Email",

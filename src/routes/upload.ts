@@ -122,4 +122,42 @@ router.get("/all", async (request: Request, response: Response): Promise<any> =>
   }
 })
 
+router.delete("/", async (request: Request, response: Response): Promise<any> => {
+  try {
+    if (!request.isAuthenticated()) {
+      return response.status(401).send(response.__("unauthorizedError"));
+    }
+    const requiredParams = [
+        "id", "type"
+    ];
+
+    const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.query);
+    
+    if (missingParams.length > 0) {
+        return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
+    }
+
+    let vehicle = await prisma.vehicle.findFirst({ where: { id: Number(sanitizedParams.id), idUser:  (request.user as User).id} });
+    if ( !!vehicle && !!vehicle[sanitizedParams.type as keyof Vehicle]){
+      let fileName = sanitizedParams.id + "-" + sanitizedParams.type + vehicle[sanitizedParams.type as keyof Vehicle];
+      const filePath = path.join(__dirname, "..", "..", "uploads", fileName);
+      fs.unlinkSync(filePath);
+    }
+
+    await prisma.vehicle.update({
+      where: { 
+        id: Number(sanitizedParams.id),
+        idUser: (request.user as User).id,
+      },
+      data: { 
+        [sanitizedParams.type as keyof Vehicle]: null
+      },
+    });
+    response.json(response.__("fileDeletedSuccessfully"));
+  } catch (error) {
+    response.status(500).send(response.__("serverError"));
+    console.error(error);
+  }
+})
+
 export default router;
