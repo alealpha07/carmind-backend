@@ -1,15 +1,12 @@
 // #region imports
-import express, { Request, Response } from "express";
+import express from "express";
 import session from "express-session";
 import cors from "cors";
 import passport from "passport";
 import cookieParser from "cookie-parser";
-import bcrypt from "bcryptjs"
 import bodyParser from "body-parser";
-import prisma from "./connection";
 import inizializePassport from "./passportConfig";
 import dotenv from "dotenv";
-import { User } from "@prisma/client";
 import i18n from "i18n";
 import path from "path";
 
@@ -26,7 +23,7 @@ const COOKIE_SECRET = process.env.COOKIE_SECRET;
 if (!COOKIE_SECRET) throw ("COOKIE_SECRET is required");
 // #endregion
 
-// #region middlewhere
+// #region middleware
 i18n.configure({
     locales: ["en", "it"],
     directory: path.resolve(__dirname, "locales"),

@@ -19,6 +19,7 @@
     "fileDeletedSuccessfully": "File cancellato con successo!",
     "vehicleNotFoundError": "Veicolo non trovato!",
     "fileNotFoundError": "File non trovato!",
+    "typeNotFoundError": "Tipo non trovato!",
 	"username": "Email",
 	"password": "Password",
     "newPassword": "Nuova Password",

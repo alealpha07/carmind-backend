@@ -1,7 +1,7 @@
 import Local from "passport-local";
 const LocalStrategy = Local.Strategy;
 import bcrypt from "bcryptjs";
-import prisma from "./connection";
+import { prisma } from "./utils";
 import { DoneCallback } from "passport";
 import { User } from "@prisma/client";
 

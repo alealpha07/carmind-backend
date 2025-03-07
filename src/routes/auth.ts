@@ -1,9 +1,8 @@
 import express, { Request, Response } from "express";
-import prisma from "../connection";
 import bcrypt from "bcryptjs";
 import passport from "passport";
 import { User } from "@prisma/client";
-import { sanitizeParams } from "../utils";
+import { sanitizeParams, prisma, isAuthenticated } from "../utils";
 const PASSWORD_SALT = 10;
 const router = express.Router();
 
@@ -12,12 +11,11 @@ router.post("/register", async (request: Request, response: Response): Promise<a
         const requiredParams = [
             "username", "password", "confirmPassword", "name", "surname", "birthDate"
         ];
-        
         const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.body);
-        
         if (missingParams.length > 0) {
             return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
         }
+
         const user = await prisma.user.findUnique({ where: { email: sanitizedParams.username } });
         if (!!user) {
             return response.status(422).send(response.__("emailAlreadyTakenError"));
@@ -25,6 +23,7 @@ router.post("/register", async (request: Request, response: Response): Promise<a
         if (sanitizedParams.password != sanitizedParams.confirmPassword) {
             return response.status(422).send(response.__("passwordsNotMatchingError"));
         }
+
         const hashedPassword = await bcrypt.hash(sanitizedParams.password, PASSWORD_SALT);
         await prisma.user.create({
             data: {
@@ -52,12 +51,8 @@ router.post("/login", async (request: Request, response: Response, next) => {
     })(request, response, next)
 })
 
-router.get("/user", async (request: Request, response: Response): Promise<any> => {
+router.get("/user", isAuthenticated, async (request: Request, response: Response): Promise<any> => {
     try {
-        if (!request.isAuthenticated()) {
-            return response.status(401).send(response.__("unauthorizedError"));
-        }
-
         const user = await prisma.user.findUnique({ where: { id: (request.user as User).id } });
         response.send(user);
     } catch (error) {
@@ -75,21 +70,16 @@ router.post("/logout", (request: Request, response: Response, next) => {
     });
 })
 
-router.post("/reset", async (request: Request, response: Response): Promise<any> => {
+router.post("/reset", isAuthenticated, async (request: Request, response: Response): Promise<any> => {
     try {
-        if (!request.isAuthenticated()) {
-            return response.status(401).send(response.__("unauthorizedError"));
-        }
-
         const requiredParams = [
             "password", "newPassword","confirmNewPassword"
         ];
-        
         const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.body);
-        
         if (missingParams.length > 0) {
             return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
         }
+
         const user = (request.user as User);
         const passwordsAreMatching = await bcrypt.compare(sanitizedParams.password, user.password);
         if (!passwordsAreMatching) {
@@ -98,8 +88,8 @@ router.post("/reset", async (request: Request, response: Response): Promise<any>
         if (sanitizedParams.newPassword != sanitizedParams.confirmNewPassword) {
             return response.status(422).send(response.__("passwordsNotMatchingError"));
         }
-        const hashedPassword = await bcrypt.hash(sanitizedParams.newPassword, PASSWORD_SALT);
 
+        const hashedPassword = await bcrypt.hash(sanitizedParams.newPassword, PASSWORD_SALT);
         await prisma.user.update({
             where: {
                 id: user.id,
@@ -115,18 +105,12 @@ router.post("/reset", async (request: Request, response: Response): Promise<any>
     }
 })
 
-router.post("/editprofile", async (request: Request, response: Response): Promise<any> => {
+router.post("/editprofile", isAuthenticated, async (request: Request, response: Response): Promise<any> => {
     try {
-        if (!request.isAuthenticated()) {
-            return response.status(401).send(response.__("unauthorizedError"));
-        }
-
         const requiredParams = [
             "name", "surname", "birthDate"
         ];
-        
         const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.body);
-        
         if (missingParams.length > 0) {
             return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
         }
