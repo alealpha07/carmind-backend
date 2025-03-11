@@ -69,20 +69,8 @@ import upload from "./routes/upload";
 app.use("/upload", upload);
 import vehicle from "./routes/vehicle";
 app.use("/vehicle", vehicle);
-
-app.post("/subscribe", async (req, res) => {
-    const { endpoint, keys } = req.body;
-
-    try {
-        const existing = await prisma.subscription.findUnique({ where: { endpoint } });
-        if (!existing) {
-            await prisma.subscription.create({ data: { endpoint, p256dh: keys.p256dh, auth: keys.auth } });
-        }
-        res.status(201).json({ message: "Subscribed successfully!" });
-    } catch (error) {
-        res.status(500).json({ error: "Failed to save subscription" });
-    }
-});
+import subscribe from "./routes/subscribe";
+app.use("/subscribe", subscribe);
 
 cron.schedule("*/2 * * * *", async () => {
     console.log("Running scheduled notification task...");

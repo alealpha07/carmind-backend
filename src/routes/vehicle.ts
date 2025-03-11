@@ -2,16 +2,12 @@ import express, { Request, Response } from "express";
 import path from "path"
 import fs from "fs";
 import { User, Vehicle } from "@prisma/client";
-import { sanitizeParams, UPLOAD_DIR, prisma, generateFileName } from "../utils";
+import { sanitizeParams, UPLOAD_DIR, prisma, generateFileName, isAuthenticated } from "../utils";
 import {AvailableFiles} from "../types"
 const router = express.Router();
 
-router.post("/", async (request: Request, response: Response): Promise<any> => {
+router.post("/", isAuthenticated,async (request: Request, response: Response): Promise<any> => {
     try {
-        if (!request.isAuthenticated()) {
-            return response.status(401).send(response.__("unauthorizedError"));
-        }
-
         const requiredParams = [
             "type", "brand", "model", "registrationYear", "plateNumber",
             "isInsured", "startDateInsurance", "endDateInsurance", "hasBill", 
@@ -33,11 +29,8 @@ router.post("/", async (request: Request, response: Response): Promise<any> => {
     }
 })
 
-router.get("/", async (request: Request, response: Response): Promise<any> => {
-    try {
-        if (!request.isAuthenticated()) {
-            return response.status(401).send(response.__("unauthorizedError"));
-        }        
+router.get("/", isAuthenticated, async (request: Request, response: Response): Promise<any> => {
+    try { 
         const user = (request.user as User);
         const vehicles = await prisma.vehicle.findMany({
             where: {idUser: user.id}
@@ -49,12 +42,8 @@ router.get("/", async (request: Request, response: Response): Promise<any> => {
     }
 })
 
-router.put("/", async (request: Request, response: Response): Promise<any> => {
+router.put("/", isAuthenticated, async (request: Request, response: Response): Promise<any> => {
     try {
-        if (!request.isAuthenticated()) {
-            return response.status(401).send(response.__("unauthorizedError"));
-        }
-
         const requiredParams = [
             "type", "brand", "model", "registrationYear", "plateNumber",
             "isInsured", "startDateInsurance", "endDateInsurance", "hasBill", 
@@ -77,12 +66,8 @@ router.put("/", async (request: Request, response: Response): Promise<any> => {
     }
 })
 
-router.delete("/", async (request: Request, response: Response): Promise<any> => {
+router.delete("/", isAuthenticated, async (request: Request, response: Response): Promise<any> => {
     try {
-        if (!request.isAuthenticated()) {
-            return response.status(401).send(response.__("unauthorizedError"));
-        }
-
         const requiredParams = ["id"];
         const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.query);
         if (missingParams.length > 0) {

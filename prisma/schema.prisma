@@ -21,6 +21,7 @@ model User {
   surname String
   birthDate DateTime
   vehicles Vehicle[]
+  subscriptions Subscription[]
 }
 
 model Vehicle {
@@ -46,6 +47,8 @@ model Vehicle {
 
 model Subscription {
   id        String @id @default(uuid())
+  idUser Int
+  user User @relation(fields: [idUser], references: [id])
   endpoint  String @unique
   p256dh    String
   auth      String
