@@ -20,7 +20,7 @@ router.post("/", isAuthenticated, async (request: Request, response: Response): 
         if (!existing) {
             await prisma.subscription.create({ data: { endpoint, p256dh: keys.p256dh, auth: keys.auth, idUser: user.id }});
         }
-        response.status(201).json({ message: "Subscribed successfully!" });
+        response.status(201).json({ message: response.__("subscribedSuccesfully") });
     } catch (error) {
         response.status(500).send(response.__("serverError"));
         console.error(error);

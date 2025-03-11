@@ -16,6 +16,7 @@
     "vehicleCreatedSuccessfully": "Vehicle created successfully!",
     "vehicleUpdatedSuccessfully": "Vehicle updated successfully!",
     "vehicleDeletedSuccessfully": "Vehicle deleted successfully!",
+    "subscribedSuccesfully": "Subscribed to notification successfully!",
     "fileDeletedSuccessfully": "File deleted successfully!",
     "vehicleNotFoundError": "Vehicle not found!",
     "fileNotFoundError": "File not found!",
@@ -39,5 +40,7 @@
     "endDateInsurance": "Expire Date Insurance", 
     "hasBill": "Has Bill?", 
     "endDateBill": "Expire Date Bill", 
-    "endDateRevision": "Expire Date Revision"
+    "endDateRevision": "Expire Date Revision",
+    "impendingExpiration": "Impending Expiration!",
+    "impendingExpirationText": "Warning: You have a new impending expiration!"
 }

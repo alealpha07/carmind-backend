@@ -108,7 +108,7 @@ cron.schedule("*/2 * * * *", async () => {
                     auth: sub.auth,
                 },
             };
-            const payload = JSON.stringify({ title: "New Expiration", body: "Warning: You have a new impending expiration!" });
+            const payload = JSON.stringify({ title: i18n.__("impendingExpiration"), body: `⚠️${i18n.__("impendingExpirationText")}` });
             try {
                 await webpush.sendNotification(pushSubscription, payload);
             } catch (error: any) {

@@ -17,6 +17,7 @@
     "vehicleUpdatedSuccessfully": "Veicolo aggiornato con successo!",
     "vehicleDeletedSuccessfully": "Veicolo cancellato con successo!",
     "fileDeletedSuccessfully": "File cancellato con successo!",
+    "subscribedSuccesfully": "Sottoscrizione alle notifiche avvenuta con successo!",
     "vehicleNotFoundError": "Veicolo non trovato!",
     "fileNotFoundError": "File non trovato!",
     "typeNotFoundError": "Tipo non trovato!",
@@ -39,5 +40,7 @@
     "endDateInsurance": "Data Scadenza Assicurazione", 
     "hasBill": "Ha il Bollo?", 
     "endDateBill": "Data Scadenza Bollo", 
-    "endDateRevision": "Data Scadenza Revisione"
+    "endDateRevision": "Data Scadenza Revisione",
+    "impendingExpiration": "Scadenza imminente!",
+    "impendingExpirationText": "Avviso: hai una scadenza imminente!"
 }
