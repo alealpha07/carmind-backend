@@ -31,7 +31,7 @@ const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 if (!VAPID_PRIVATE_KEY) throw ("VAPID_PRIVATE_KEY is required");
 
 webpush.setVapidDetails(
-    "",
+    "admin@admin.com",
     VAPID_PUBLIC_KEY,
     VAPID_PRIVATE_KEY
 );
