@@ -29,9 +29,11 @@ const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
 if (!VAPID_PUBLIC_KEY) throw ("VAPID_PUBLIC_KEY is required");
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 if (!VAPID_PRIVATE_KEY) throw ("VAPID_PRIVATE_KEY is required");
+const VAPID_EMAIL = process.env.VAPID_EMAIL;
+if (!VAPID_EMAIL) throw ("VAPID_EMAIL is required");
 
 webpush.setVapidDetails(
-    "mailto:your@email.com",
+    `mailto:${VAPID_EMAIL}`,
     VAPID_PUBLIC_KEY,
     VAPID_PRIVATE_KEY
 );
