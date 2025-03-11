@@ -9,6 +9,9 @@ import inizializePassport from "./passportConfig";
 import dotenv from "dotenv";
 import i18n from "i18n";
 import path from "path";
+import webpush from 'web-push';
+import cron from "node-cron"
+import {prisma} from "./utils";
 
 dotenv.config();
 // #endregion 
@@ -21,6 +24,16 @@ const SESSION_SECRET = process.env.SESSION_SECRET;
 if (!SESSION_SECRET) throw ("SESSION_SECRET is required");
 const COOKIE_SECRET = process.env.COOKIE_SECRET;
 if (!COOKIE_SECRET) throw ("COOKIE_SECRET is required");
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
+if (!VAPID_PUBLIC_KEY) throw ("VAPID_PUBLIC_KEY is required");
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
+if (!VAPID_PRIVATE_KEY) throw ("VAPID_PRIVATE_KEY is required");
+
+webpush.setVapidDetails(
+    "mailto:your@email.com",
+    VAPID_PUBLIC_KEY,
+    VAPID_PRIVATE_KEY
+  );
 // #endregion
 
 // #region middleware
@@ -56,6 +69,56 @@ import upload from "./routes/upload";
 app.use("/upload", upload);
 import vehicle from "./routes/vehicle";
 app.use("/vehicle", vehicle);
+
+app.post("/subscribe", async (req, res) => {
+    const { endpoint, keys } = req.body;
+
+    try {
+        const existing = await prisma.subscription.findUnique({ where: { endpoint } });
+        if (!existing) {
+            await prisma.subscription.create({ data: { endpoint, p256dh: keys.p256dh, auth: keys.auth } });
+        }
+        res.status(201).json({ message: "Subscribed successfully!" });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to save subscription" });
+    }
+});
+
+cron.schedule("*/2 * * * *", async () => {
+    console.log("Running scheduled notification task...");
+    const payload = JSON.stringify({ title: "New Notification", body: "Automated alert!" });
+
+    try {
+        const subscriptions = await prisma.subscription.findMany();
+
+        for (const sub of subscriptions) {
+            const pushSubscription = {
+                endpoint: sub.endpoint,
+                expirationTime: null,
+                keys: {
+                    p256dh: sub.p256dh,
+                    auth: sub.auth,
+                },
+            };
+ 
+            try {
+                let result = await webpush.sendNotification(pushSubscription, payload);
+            } catch (error: any) {
+                if (error.statusCode === 410) {
+                    // If the subscription is invalid, remove it from the database
+                    console.log(`Subscription invalid for endpoint: ${sub.endpoint}, removing from database.`);
+                    await prisma.subscription.delete({
+                        where: { endpoint: sub.endpoint },
+                    });
+                } else {
+                    console.error("Error sending notification:", error);
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Error sending notification:", error);
+    }
+});
 
 // #endregion
 

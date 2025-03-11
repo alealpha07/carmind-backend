@@ -43,3 +43,10 @@ model Vehicle {
   registrationCardFileExtension String?
   vehicleImageFileExtension String?
 }
+
+model Subscription {
+  id        String @id @default(uuid())
+  endpoint  String @unique
+  p256dh    String
+  auth      String
+}
