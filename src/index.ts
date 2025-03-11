@@ -11,7 +11,8 @@ import i18n from "i18n";
 import path from "path";
 import webpush from 'web-push';
 import cron from "node-cron"
-import {prisma} from "./utils";
+import { prisma } from "./utils";
+import { subDays } from "date-fns";
 
 dotenv.config();
 // #endregion 
@@ -33,7 +34,7 @@ webpush.setVapidDetails(
     "",
     VAPID_PUBLIC_KEY,
     VAPID_PRIVATE_KEY
-  );
+);
 // #endregion
 
 // #region middleware
@@ -72,14 +73,31 @@ app.use("/vehicle", vehicle);
 import subscribe from "./routes/subscribe";
 app.use("/subscribe", subscribe);
 
+// #endregion
+
 cron.schedule("*/2 * * * *", async () => {
     console.log("Running scheduled notification task...");
-    const payload = JSON.stringify({ title: "New Notification", body: "Automated alert!" });
 
     try {
-        const subscriptions = await prisma.subscription.findMany();
+        const today = new Date()
+        const deadline = subDays(today, -30)
 
-        for (const sub of subscriptions) {
+        const subscriptions = await prisma.subscription.findMany({
+            where: {
+                user: {
+                    vehicles: {
+                        some: {
+                            OR: [
+                                { isInsured: true, endDateInsurance: { lte: deadline } },
+                                { hasBill: true, endDateBill: { lte: deadline } },
+                                { endDateRevision: { lte: deadline } }
+                            ]
+                        }
+                    }
+                }
+            },
+        })
+        subscriptions.forEach(async (sub) => {
             const pushSubscription = {
                 endpoint: sub.endpoint,
                 expirationTime: null,
@@ -88,13 +106,13 @@ cron.schedule("*/2 * * * *", async () => {
                     auth: sub.auth,
                 },
             };
- 
+            const payload = JSON.stringify({ title: "New Expiration", body: "Warning: You have a new impending expiration!" });
             try {
-                let result = await webpush.sendNotification(pushSubscription, payload);
+                await webpush.sendNotification(pushSubscription, payload);
             } catch (error: any) {
                 if (error.statusCode === 410) {
                     // If the subscription is invalid, remove it from the database
-                    console.log(`Subscription invalid for endpoint: ${sub.endpoint}, removing from database.`);
+                    console.warn(`Subscription invalid for endpoint: ${sub.endpoint}, removing from database.`);
                     await prisma.subscription.delete({
                         where: { endpoint: sub.endpoint },
                     });
@@ -102,13 +120,11 @@ cron.schedule("*/2 * * * *", async () => {
                     console.error("Error sending notification:", error);
                 }
             }
-        }
+        })
     } catch (error) {
         console.error("Error sending notification:", error);
     }
 });
-
-// #endregion
 
 app.listen(process.env.PORT, () => {
     console.log(`Server has started on http://localhost:${process.env.PORT}`);
