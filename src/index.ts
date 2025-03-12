@@ -77,7 +77,7 @@ app.use("/subscribe", subscribe);
 
 // #endregion
 
-cron.schedule("*/2 * * * *", async () => {
+cron.schedule("0 12 * * 1", async () => {
     console.log("Running scheduled notification task...");
 
     try {
