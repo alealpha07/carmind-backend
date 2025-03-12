@@ -1,0 +1,17 @@
+services:
+  carmind-backend:
+    build:
+      context: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/usr/src/app/prisma/data
+    environment:
+      - DATABASE_URL=file:./data/dev.db
+      - FRONT_END_URL=http://localhost:5173
+      - SESSION_SECRET=SECRET
+      - COOKIE_SECRET=SECRET
+      - PORT=3000
+      - VAPID_PUBLIC_KEY=putyourvapidkeyhere
+      - VAPID_PRIVATE_KEY=putyourvapidkeyhere
+      - VAPID_EMAIL="email@example.com"

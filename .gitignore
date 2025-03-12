@@ -5,3 +5,5 @@ dist
 dev.db
 .idea
 uploads
+docker-compose.yml
+appdata
