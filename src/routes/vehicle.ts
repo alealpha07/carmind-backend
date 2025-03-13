@@ -42,6 +42,23 @@ router.get("/", isAuthenticated, async (request: Request, response: Response): P
     }
 })
 
+router.get("/details", isAuthenticated, async (request: Request, response: Response): Promise<any> => {
+    try { 
+        const requiredParams = ["id"];
+        const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.query);
+        if (missingParams.length > 0) {
+            return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
+        }
+        const vehicle = await prisma.vehicle.findUnique({
+            where: {id: Number(sanitizedParams.id)}
+        })
+        response.json(vehicle);
+    } catch (error) {
+        response.status(500).send(response.__("serverError"));
+        console.error(error);
+    }
+})
+
 router.put("/", isAuthenticated, async (request: Request, response: Response): Promise<any> => {
     try {
         const requiredParams = [
