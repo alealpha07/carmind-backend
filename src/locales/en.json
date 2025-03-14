@@ -43,5 +43,8 @@
 	"endDateRevision": "Expire Date Revision",
 	"impendingExpiration": "Impending Expiration!",
 	"impendingExpirationText": "Warning: You have a new impending expiration!",
-	"Missing credentials": "Missing credentials"
+	"Missing credentials": "Missing credentials",
+	"endpoint": "endpoint",
+	"keys": "keys",
+	"locale": "locale"
 }

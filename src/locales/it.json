@@ -43,5 +43,8 @@
 	"endDateRevision": "Data Scadenza Revisione",
 	"impendingExpiration": "Scadenza imminente!",
 	"impendingExpirationText": "Avviso: hai una scadenza imminente!",
-	"Missing credentials": "Missing credentials"
+	"Missing credentials": "Missing credentials",
+	"endpoint": "endpoint",
+	"keys": "keys",
+	"locale": "locale"
 }

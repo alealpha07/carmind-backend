@@ -15,12 +15,12 @@ router.post("/", isAuthenticated, async (request: Request, response: Response): 
         }
         
         const user = (request.user as User);
-        const {endpoint,keys} = sanitizedParams;
+        const {endpoint, keys} = sanitizedParams;
         //update if it exists => create if it doesn't
         await prisma.subscription.upsert({
             where: { endpoint },
             update: { p256dh: keys.p256dh, auth: keys.auth, idUser: user.id },
-            create: { endpoint, p256dh: keys.p256dh, auth: keys.auth, idUser: user.id },
+            create: { endpoint, p256dh: keys.p256dh, auth: keys.auth, idUser: user.id, locale: request.query.locale as string || 'en' },
         });
         response.status(201).json({ message: response.__("subscribedSuccesfully") });
     } catch (error) {

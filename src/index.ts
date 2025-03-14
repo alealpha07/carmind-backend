@@ -77,7 +77,8 @@ app.use("/subscribe", subscribe);
 
 // #endregion
 
-cron.schedule("0 12 * * 1", async () => {
+// 0 12 * * 1
+cron.schedule("*/1 * * * *", async () => {
     console.log("Running scheduled notification task...");
 
     try {
@@ -100,6 +101,7 @@ cron.schedule("0 12 * * 1", async () => {
             },
         })
         subscriptions.forEach(async (sub) => {
+            i18n.setLocale(sub.locale);
             const pushSubscription = {
                 endpoint: sub.endpoint,
                 expirationTime: null,

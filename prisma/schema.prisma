@@ -52,4 +52,5 @@ model Subscription {
   endpoint  String @unique
   p256dh    String
   auth      String
+  locale    String
 }
