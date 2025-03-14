@@ -9,11 +9,7 @@ import inizializePassport from "./passportConfig";
 import dotenv from "dotenv";
 import i18n from "i18n";
 import path from "path";
-import webpush from 'web-push';
-import cron from "node-cron"
-import { prisma } from "./utils";
-import { subDays } from "date-fns";
-
+import initNotificationScheduler from "./notificationScheduler";
 dotenv.config();
 // #endregion 
 // #region inizialization
@@ -25,18 +21,6 @@ const SESSION_SECRET = process.env.SESSION_SECRET;
 if (!SESSION_SECRET) throw ("SESSION_SECRET is required");
 const COOKIE_SECRET = process.env.COOKIE_SECRET;
 if (!COOKIE_SECRET) throw ("COOKIE_SECRET is required");
-const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
-if (!VAPID_PUBLIC_KEY) throw ("VAPID_PUBLIC_KEY is required");
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
-if (!VAPID_PRIVATE_KEY) throw ("VAPID_PRIVATE_KEY is required");
-const VAPID_EMAIL = process.env.VAPID_EMAIL;
-if (!VAPID_EMAIL) throw ("VAPID_EMAIL is required");
-
-webpush.setVapidDetails(
-    `mailto:${VAPID_EMAIL}`,
-    VAPID_PUBLIC_KEY,
-    VAPID_PRIVATE_KEY
-);
 // #endregion
 
 // #region middleware
@@ -72,63 +56,11 @@ import upload from "./routes/upload";
 app.use("/upload", upload);
 import vehicle from "./routes/vehicle";
 app.use("/vehicle", vehicle);
-import subscribe from "./routes/subscribe";
-app.use("/subscribe", subscribe);
-
+import notification from "./routes/notification";
+app.use("/subscribe", notification);
 // #endregion
 
-// 0 12 * * 1
-cron.schedule("*/1 * * * *", async () => {
-    console.log("Running scheduled notification task...");
-
-    try {
-        const today = new Date()
-        const deadline = subDays(today, -30)
-
-        const subscriptions = await prisma.subscription.findMany({
-            where: {
-                user: {
-                    vehicles: {
-                        some: {
-                            OR: [
-                                { isInsured: true, endDateInsurance: { lte: deadline } },
-                                { hasBill: true, endDateBill: { lte: deadline } },
-                                { endDateRevision: { lte: deadline } }
-                            ]
-                        }
-                    }
-                }
-            },
-        })
-        subscriptions.forEach(async (sub) => {
-            i18n.setLocale(sub.locale);
-            const pushSubscription = {
-                endpoint: sub.endpoint,
-                expirationTime: null,
-                keys: {
-                    p256dh: sub.p256dh,
-                    auth: sub.auth,
-                },
-            };
-            const payload = JSON.stringify({ title: i18n.__("impendingExpiration"), body: `⚠️${i18n.__("impendingExpirationText")}` });
-            try {
-                await webpush.sendNotification(pushSubscription, payload);
-            } catch (error: any) {
-                if (error.statusCode === 410) {
-                    // If the subscription is invalid, remove it from the database
-                    console.warn(`Subscription invalid for endpoint: ${sub.endpoint}, removing from database.`);
-                    await prisma.subscription.delete({
-                        where: { endpoint: sub.endpoint },
-                    });
-                } else {
-                    console.error("Error sending notification:", error);
-                }
-            }
-        })
-    } catch (error) {
-        console.error("Error sending notification:", error);
-    }
-});
+initNotificationScheduler();
 
 app.listen(process.env.PORT, () => {
     console.log(`Server has started on http://localhost:${process.env.PORT}`);
