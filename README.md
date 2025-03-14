@@ -14,7 +14,7 @@ Carmind Backend is an open-source backend system for managing automotive-related
 ### Prerequisites
 Ensure you have the following installed on your system:
 
-- **Node.js v20.x.x** (Latest LTS recommended)
+- **Node.js v20.x.x** (Latest LTS strongly recommended)
 - **npm** (comes with Node.js)
 - **Docker** (for production setup, optional for development)
 - **ts-node-dev** (for running TypeScript in development)
