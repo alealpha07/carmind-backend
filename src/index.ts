@@ -9,10 +9,12 @@ import inizializePassport from "./passportConfig";
 import dotenv from "dotenv";
 import i18n from "i18n";
 import path from "path";
-import initNotificationScheduler from "./notificationScheduler";
-dotenv.config();
+import initializeNotificationScheduler from "./notificationScheduler";
+import fs from "fs";
 // #endregion 
+
 // #region inizialization
+dotenv.config();
 const app = express();
 inizializePassport(passport);
 const FRONT_END_URL = process.env.FRONT_END_URL;
@@ -21,18 +23,24 @@ const SESSION_SECRET = process.env.SESSION_SECRET;
 if (!SESSION_SECRET) throw ("SESSION_SECRET is required");
 const COOKIE_SECRET = process.env.COOKIE_SECRET;
 if (!COOKIE_SECRET) throw ("COOKIE_SECRET is required");
-// #endregion
-
-// #region middleware
+const PORT = process.env.PORT;
+if (!PORT) throw ("PORT is required");
+const LOCALES_DIRECTORY = path.resolve(__dirname, 'locales');
+const LOCALES = fs.readdirSync(LOCALES_DIRECTORY)
+    .filter(file => !fs.statSync(path.join(LOCALES_DIRECTORY, file)).isDirectory())
+    .map(file => path.parse(file).name);
 i18n.configure({
-    locales: ["en", "it"],
-    directory: path.resolve(__dirname, "locales"),
+    locales: LOCALES,
+    directory: LOCALES_DIRECTORY,
     defaultLocale: "en",
     queryParameter: "lang",
     autoReload: true,
     syncFiles: true,
     objectNotation: true,
 });
+// #endregion
+
+// #region middleware
 app.use(i18n.init);
 app.use(cors({ origin: [FRONT_END_URL], credentials: true }));
 app.use(bodyParser.json({ limit: "10mb" }));
@@ -60,8 +68,8 @@ import notification from "./routes/notification";
 app.use("/subscribe", notification);
 // #endregion
 
-initNotificationScheduler();
+initializeNotificationScheduler();
 
-app.listen(process.env.PORT, () => {
-    console.log(`Server has started on http://localhost:${process.env.PORT}`);
+app.listen(PORT, () => {
+    console.log(`Server has started on http://localhost:${PORT}`);
 })
