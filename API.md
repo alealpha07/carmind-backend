@@ -335,8 +335,8 @@ Deletes a file for a specific vehicle.
 ---
 
 ### Internationalization
-Translations are handled by i18n.
-In addition to all the listed params of the above routes
-it's possible to specify the preferred locale by adding the `lang` query paramiter.
+To support multiple languages, translations are managed using the i18n library. You can specify your preferred language by including the lang query parameter in your request. This allows the API to return responses in the desired language.
 
-See more details about internalization [here](./INTERNATIONALIZATION.md)
+For more detailed information on how internationalization is implemented, please refer to the [Internationalization Documentation](./INTERNATIONALIZATION.md)
+
+[Go back to README.md](./README.md)
