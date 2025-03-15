@@ -34,7 +34,6 @@
     "passport-local": "^1.0.0",
     "prisma": "^6.4.1",
     "sqlite3": "^5.1.7",
-    "tsc": "^2.0.4",
     "typescript": "^5.8.2",
     "web-push": "^3.6.7"
   },

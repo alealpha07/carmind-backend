@@ -25,7 +25,7 @@ const COOKIE_SECRET = process.env.COOKIE_SECRET;
 if (!COOKIE_SECRET) throw ("COOKIE_SECRET is required");
 const PORT = process.env.PORT;
 if (!PORT) throw ("PORT is required");
-const LOCALES_DIRECTORY = path.resolve(__dirname, 'locales');
+const LOCALES_DIRECTORY = path.resolve(__dirname, "..", 'locales');
 const LOCALES = fs.readdirSync(LOCALES_DIRECTORY)
     .filter(file => !fs.statSync(path.join(LOCALES_DIRECTORY, file)).isDirectory())
     .map(file => path.parse(file).name);

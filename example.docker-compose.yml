@@ -3,15 +3,16 @@ services:
     build:
       context: .
     ports:
-      - "3000:3000"
+      - "PUT_YOUR_PORT_HERE:3000"
     volumes:
-      - ./data:/usr/src/app/prisma/data
+      - ./appdb:/usr/src/app/prisma/data
+      - ./appuploads:/usr/src/app/uploads
     environment:
       - DATABASE_URL=file:./data/dev.db
-      - FRONT_END_URL=http://localhost:5173
-      - SESSION_SECRET=SECRET
-      - COOKIE_SECRET=SECRET
+      - FRONT_END_URL=PUT_YOUR_URL_FOR_THE_FRONTEND
+      - SESSION_SECRET=PUT_YOUR_SESSION_SECRET
+      - COOKIE_SECRET=PUT_YOUR_COOKIE_SECRET
       - PORT=3000
-      - VAPID_PUBLIC_KEY=putyourvapidkeyhere
-      - VAPID_PRIVATE_KEY=putyourvapidkeyhere
-      - VAPID_EMAIL="email@example.com"
+      - VAPID_PUBLIC_KEY=PUT_PUBLIC_VAPID_KEY_HERE
+      - VAPID_PRIVATE_KEY=PUT_PRIVATE_VAPID_KEY_HERE
+      - VAPID_EMAIL="PUT_YOUR_VAPID_EMAIL_HERE"

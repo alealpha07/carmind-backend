@@ -8,7 +8,7 @@ Translations in the application are managed using the `i18n` library. This docum
 
 To add new translations for existing locales, follow these steps:
 
-1. Navigate to the `./src/locales/` directory.
+1. Navigate to the `./locales/` directory.
 2. Open the locale file you want to update (e.g., `en.json` for English).
 3. Add the new key-value pair to the JSON object. For example:
    ```json
@@ -26,7 +26,7 @@ To add new translations for existing locales, follow these steps:
 To add a new locale to the application, follow these steps:
 
 1. **Create a New Locale File**:
-   - Navigate to the `./src/locales/` directory.
+   - Navigate to the `./locales/` directory.
    - Create a new JSON file with the name corresponding to the locale code (e.g., `fr.json` for French, `es.json` for Spanish).
 
 2. **Populate the Locale File**:
@@ -50,7 +50,7 @@ The default locale for the application is **English (`en`)**. If a translation k
 
 ## Example Directory Structure
 
-The `./src/locales/` directory should look like this:
+The `./locales/` directory should look like this:
 
 ```
 locales/
