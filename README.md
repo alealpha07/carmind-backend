@@ -83,6 +83,15 @@ npm run dev
 
 ---
 
+## Documentation
+
+#### API
+Details about the API is avaialble [here](./API.md)
+#### Internationalization
+Details about Internationalization is avaialble [here](./INTERNATIONALIZATION.md)
+
+---
+
 ## Contributing
 We welcome contributions from the community! To contribute:
 1. Fork the repository.
