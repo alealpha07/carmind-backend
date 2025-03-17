@@ -84,7 +84,7 @@ export default function initNotificationScheduler() {
             };
             const payload = JSON.stringify({
                 title: i18n.__(titleKey),
-                body: `${i18n.__(bodyKey)}`,
+                body: i18n.__(bodyKey),
             });
     
             await webpush.sendNotification(pushSubscription, payload);

@@ -6,10 +6,18 @@ import { AvailableFiles } from "../types"
 import { User, Vehicle } from "@prisma/client";
 import { sanitizeParams, UPLOAD_DIR, prisma, generateFileName, isAuthenticated } from "../utils";
 const router = express.Router();
+const UPLOAD_FILE_DIR = "uploads/";
 
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, "uploads/"),
-    filename: (req, file, cb) => cb(null, req.query.id + "-" + req.query.type + path.extname(file.originalname)),
+    destination: (req, file, cb) => cb(null, UPLOAD_FILE_DIR),
+    filename: (req, file, cb) => {
+        const requiredParams = ["id", "type"];
+        const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, req.query);
+        if (missingParams.length > 0) {
+            return console.error ("Missing required params: " + missingParams.join(", "));
+        }
+        cb(null, generateFileName(sanitizedParams.id, sanitizedParams.type, path.extname(file.originalname)))
+    },
 });
 const upload = multer({ storage });
 
@@ -19,9 +27,7 @@ router.post("/", upload.single("file"), isAuthenticated, async (request: Request
             return response.status(422).json(response.__("fileMissingError"));
         }
 
-        const requiredParams = [
-            "id", "type"
-        ];
+        const requiredParams = ["id", "type"];
         const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.query);
         if (missingParams.length > 0) {
             return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
@@ -58,9 +64,7 @@ router.post("/", upload.single("file"), isAuthenticated, async (request: Request
 
 router.get("/", isAuthenticated, async (request: Request, response: Response): Promise<any> => {
     try {
-        const requiredParams = [
-            "id", "type"
-        ];
+        const requiredParams = ["id", "type"];
         const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.query);
         if (missingParams.length > 0) {
             return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
@@ -92,9 +96,7 @@ router.get("/", isAuthenticated, async (request: Request, response: Response): P
 
 router.delete("/", isAuthenticated, async (request: Request, response: Response): Promise<any> => {
     try {
-        const requiredParams = [
-            "id", "type"
-        ];
+        const requiredParams = ["id", "type"];
         const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.query);
         if (missingParams.length > 0) {
             return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));

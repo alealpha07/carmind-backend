@@ -8,9 +8,7 @@ const router = express.Router();
 
 router.post("/register", async (request: Request, response: Response): Promise<any> => {
     try {
-        const requiredParams = [
-            "username", "password", "confirmPassword", "name", "surname", "birthDate"
-        ];
+        const requiredParams = ["username", "password", "confirmPassword", "name", "surname", "birthDate"];
         const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.body);
         if (missingParams.length > 0) {
             return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
@@ -72,9 +70,7 @@ router.post("/logout", (request: Request, response: Response, next) => {
 
 router.post("/reset", isAuthenticated, async (request: Request, response: Response): Promise<any> => {
     try {
-        const requiredParams = [
-            "password", "newPassword","confirmNewPassword"
-        ];
+        const requiredParams = ["password", "newPassword","confirmNewPassword"];
         const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.body);
         if (missingParams.length > 0) {
             return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
@@ -107,9 +103,7 @@ router.post("/reset", isAuthenticated, async (request: Request, response: Respon
 
 router.post("/editprofile", isAuthenticated, async (request: Request, response: Response): Promise<any> => {
     try {
-        const requiredParams = [
-            "name", "surname", "birthDate"
-        ];
+        const requiredParams = ["name", "surname", "birthDate"];
         const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.body);
         if (missingParams.length > 0) {
             return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));

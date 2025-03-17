@@ -6,9 +6,7 @@ const router = express.Router();
 
 router.post("/", isAuthenticated, async (request: Request, response: Response): Promise<any> => {
     try {
-        const requiredParams = [
-            "endpoint", "keys"
-        ];
+        const requiredParams = ["endpoint", "keys"];
         const { sanitizedParams, missingParams } = sanitizeParams(requiredParams, request.body);
         if (missingParams.length > 0) {
             return response.status(422).send(response.__("missingRequiredParamsError") + missingParams.map((p => response.__(p))).join(", "));
